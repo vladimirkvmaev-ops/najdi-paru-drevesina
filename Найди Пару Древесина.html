@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Найди пару: Древесина - Игра по технологии для 5 класса</title>
+    <style>
+        :root {
+            --bg-primary: #E3F2FD;
+            --bg-card: #FFF9C4;
+            --bg-card-flipped: #C8E6C9;
+            --btn-primary: #FF9800;
+            --btn-hover: #F57C00;
+            --text-primary: #3E2723;
+            --text-light: #6D4C41;
+            --border-color: #BCAAA4;
+            --shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(139, 69, 19, 0.03) 50px, rgba(139, 69, 19, 0.03) 51px),
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(139, 69, 19, 0.03) 50px, rgba(139, 69, 19, 0.03) 51px);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+        }
+
+        .menu-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px var(--shadow);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 3px solid var(--border-color);
+            border-radius: 10px;
+            background: #FFF9C4;
+        }
+
+        .difficulty-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px var(--shadow);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--btn-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px var(--shadow);
+        }
+
+        .btn-secondary {
+            background: #4CAF50;
+        }
+
+        .btn-secondary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-difficulty {
+            background: #64B5F6;
+            color: white;
+            border: 3px solid transparent;
+        }
+
+        .btn-difficulty.selected {
+            background: #1976D2;
+            border: 3px solid #0D47A1;
+            transform: scale(1.05);
+        }
+
+        .game-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #FFF9C4;
+            border-radius: 15px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .info-item {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px var(--shadow);
+        }
+
+        .timer {
+            color: #1976D2;
+        }
+
+        .timer.warning {
+            color: #F44336;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            perspective: 1000px;
+        }
+
+        @media (min-width: 768px) {
+            .game-board.grid-4x3 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .game-board.grid-4x4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .game-board.grid-5x4 {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        .card {
+            aspect-ratio: 3/4;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            animation: matchAnimation 0.6s ease;
+        }
+
+        .card.wrong {
+            animation: shakeAnimation 0.5s ease;
+        }
+
+        @keyframes matchAnimation {
+            0%, 100% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.1); }
+        }
+
+        @keyframes shakeAnimation {
+            0%, 100% { transform: rotateY(180deg) translateX(0); }
+            25% { transform: rotateY(180deg) translateX(-10px); }
+            75% { transform: rotateY(180deg) translateX(10px); }
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
+        .card-back {
+            background: var(--bg-card);
+            border: 4px solid var(--border-color);
+        }
+
+        .card-back::before {
+            content: '🌲';
+            font-size: 3rem;
+        }
+
+        .card-front {
+            background: var(--bg-card-flipped);
+            border: 4px solid #66BB6A;
+            transform: rotateY(180deg);
+        }
+
+        .card-emoji {
+            font-size: 3rem;
+            margin-bottom: 5px;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .stars {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+
+        .explanation-modal .modal-content {
+            background: linear-gradient(135deg, #C8E6C9 0%, #A5D6A7 100%);
+        }
+
+        .records-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: #FFF9C4;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .admin-screen {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #FFF9C4;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 3px solid var(--border-color);
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .menu-screen {
+                padding: 20px;
+            }
+
+            .game-header {
+                flex-direction: column;
+            }
+
+            .card-emoji {
+                font-size: 2rem;
+            }
+
+            .card-text {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <div class="container">
+        <!-- Главное меню -->
+        <div id="menu-screen" class="screen active">
+            <div class="menu-screen">
+                <h1>🌲 Найди пару: Древесина 🪵</h1>
+                <p style="text-align: center; font-size: 1.1rem; margin-bottom: 30px;">Игра по технологии для 5 класса</p>
+                
+                <div class="input-group">
+                    <label for="player-name">Твоё имя:</label>
+                    <input type="text" id="player-name" placeholder="Введи своё имя" maxlength="20">
+                </div>
+
+                <div class="input-group">
+                    <label>Выбери уровень сложности:</label>
+                    <div class="difficulty-buttons">
+                        <button class="btn btn-difficulty" data-level="easy">
+                            😊 Легкий<br><small>6 пар, 60 сек</small>
+                        </button>
+                        <button class="btn btn-difficulty selected" data-level="medium">
+                            😎 Средний<br><small>8 пар, 90 сек</small>
+                        </button>
+                        <button class="btn btn-difficulty" data-level="hard">
+                            🔥 Сложный<br><small>10 пар, 120 сек</small>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="start-game" style="width: 100%; margin-bottom: 15px;">Начать игру!</button>
+                <button class="btn btn-secondary" id="show-records" style="width: 100%; margin-bottom: 15px;">🏆 Таблица рекордов</button>
+                <button class="btn btn-secondary" id="show-rules" style="width: 100%; margin-bottom: 15px;">📖 Правила игры</button>
+                <button class="btn btn-secondary" id="show-admin" style="width: 100%;">👨‍🏫 Панель учителя</button>
+            </div>
+        </div>
+
+        <!-- Игровой экран -->
+        <div id="game-screen" class="screen">
+            <div class="game-screen">
+                <h1>🌲 Найди пару 🪵</h1>
+                
+                <div class="game-header">
+                    <div class="game-info">
+                        <div class="info-item timer">⏱️ <span id="timer">90</span> сек</div>
+                        <div class="info-item">⭐ <span id="score">0</span> очков</div>
+                        <div class="info-item">🎯 <span id="pairs-found">0</span>/<span id="total-pairs">8</span></div>
+                    </div>
+                    <div class="game-controls">
+                        <button class="btn btn-secondary btn-small" id="pause-btn">⏸️ Пауза</button>
+                        <button class="btn btn-primary btn-small" id="exit-btn">🚪 Выход</button>
+                    </div>
+                </div>
+
+                <div id="game-board" class="game-board grid-4x4"></div>
+            </div>
+        </div>
+
+        <!-- Панель администратора -->
+        <div id="admin-screen" class="screen">
+            <div class="admin-screen">
+                <h1>👨‍🏫 Панель учителя</h1>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Всего игр</h3>
+                        <div class="value" id="total-games">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Средний балл</h3>
+                        <div class="value" id="avg-score">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Лучший результат</h3>
+                        <div class="value" id="best-score">0</div>
+                    </div>
+                </div>
+
+                <h2 style="margin: 30px 0 15px;">📊 Самые сложные пары:</h2>
+                <div id="difficult-pairs" style="background: #FFF9C4; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                    <p>Статистика будет доступна после игр</p>
+                </div>
+
+                <h2 style="margin: 30px 0 15px;">✏️ Редактор контента (JSON):</h2>
+                <textarea id="content-editor"></textarea>
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <button class="btn btn-primary" id="save-content">💾 Сохранить изменения</button>
+                    <button class="btn btn-secondary" id="export-stats">📥 Экспорт статистики CSV</button>
+                    <button class="btn btn-primary" id="back-to-menu">🏠 Главное меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="explanation-modal" class="modal explanation-modal">
+        <div class="modal-content">
+            <h2>✅ Отлично!</h2>
+            <p id="explanation-text"></p>
+            <button class="btn btn-primary" onclick="closeExplanation()">Продолжить</button>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Победа!</h2>
+            <div class="stars" id="stars-display"></div>
+            <p><strong>Твой результат:</strong></p>
+            <p>⭐ Очки: <strong id="final-score">0</strong></p>
+            <p>⏱️ Время: <strong id="time-spent">0</strong> сек</p>
+            <p>🎯 Найдено пар: <strong id="pairs-result">0</strong></p>
+            <button class="btn btn-primary" onclick="returnToMenu()">Главное меню</button>
+            <button class="btn btn-secondary" onclick="playAgain()">Играть ещё раз</button>
+        </div>
+    </div>
+
+    <div id="records-modal" class="modal">
+        <div class="modal-content">
+            <h2>🏆 Таблица рекордов</h2>
+            <div class="records-list" id="records-list"></div>
+            <button class="btn btn-primary" onclick="closeRecords()">Закрыть</button>
+            <button class="btn btn-secondary" onclick="clearRecords()">🗑️ Очистить рекорды</button>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal">
+        <div class="modal-content">
+            <h2>📖 Правила игры</h2>
+            <div style="text-align: left; line-height: 1.8;">
+                <p><strong>Цель игры:</strong> найти все пары карточек за отведённое время.</p>
+                <p><strong>Как играть:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Открывай по две карточки за раз</li>
+                    <li>Если картинки связаны - пара остаётся открытой</li>
+                    <li>Если нет - карточки закрываются</li>
+                    <li>За каждую пару: +10 очков</li>
+                    <li>За ошибку: -2 очка</li>
+                    <li>Бонус за скорость: +1 очко за секунду</li>
+                </ul>
+                <p><strong>Уровни:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Легкий: 6 пар, 60 секунд, подсказка</li>
+                    <li>Средний: 8 пар, 90 секунд</li>
+                    <li>Сложный: 10 пар, 120 секунд</li>
+                </ul>
+            </div>
+            <button class="btn btn-primary" onclick="closeRules()">Понятно!</button>
+        </div>
+    </div>
+
+    <script>
+        // Данные игры
+        const gameData = {
+            pairs: [
+                {
+                    id: 1,
+                    card1: { emoji: "🌳", text: "Дуб" },
+                    card2: { emoji: "🪑", text: "Прочная мебель" },
+                    explanation: "Дуб 🌳 → Мебель 🪑: Дуб - очень прочная порода древесины с красивой текстурой, идеально подходит для изготовления долговечной мебели!"
+                },
+                {
+                    id: 2,
+                    card1: { emoji: "🌲", text: "Сосна" },
+                    card2: { emoji: "🏠", text: "Строительство" },
+                    explanation: "Сосна 🌲 → Строительство 🏠: Сосна - доступная и прочная древесина, широко используется в строительстве домов и конструкций!"
+                },
+                {
+                    id: 3,
+                    card1: { emoji: "🌳", text: "Береза" },
+                    card2: { emoji: "📦", text: "Фанера" },
+                    explanation: "Береза 🌳 → Фанера 📦: Из березы делают качественную фанеру - многослойный материал для мебели и строительства!"
+                },
+                {
+                    id: 4,
+                    card1: { emoji: "🌳", text: "Липа" },
+                    card2: { emoji: "🎨", text: "Резьба по дереву" },
+                    explanation: "Липа 🌳 → Резьба 🎨: Липа - мягкая древесина, легко обрабатывается, идеальна для резьбы и декоративных изделий!"
+                },
+                {
+                    id: 5,
+                    card1: { emoji: "🏭", text: "Пилорама" },
+                    card2: { emoji: "🪵", text: "Доски" },
+                    explanation: "Пилорама 🏭 → Доски 🪵: На пилораме бревна распиливают на доски разных размеров для строительства и производства!"
+                },
+                {
+                    id: 6,
+                    card1: { emoji: "🪓", text: "Лесозаготовка" },
+                    card2: { emoji: "🪵", text: "Бревна" },
+                    explanation: "Лесозаготовка 🪓 → Бревна 🪵: Деревья спиливают и вывозят из леса в виде бревен для дальнейшей обработки!"
+                },
+                {
+                    id: 7,
+                    card1: { emoji: "🌡️", text: "Сушка древесины" },
+                    card2: { emoji: "✅", text: "Качество" },
+                    explanation: "Сушка 🌡️ → Качество ✅: Правильная сушка древесины предотвращает деформацию и растрескивание изделий!"
+                },
+                {
+                    id: 8,
+                    card1: { emoji: "🔧", text: "Токарный станок" },
+                    card2: { emoji: "⚙️", text: "Круглые детали" },
+                    explanation: "Токарный станок 🔧 → Детали ⚙️: На токарном станке вытачивают круглые изделия - ножки столов, ручки, декор!"
+                },
+                {
+                    id: 9,
+                    card1: { emoji: "🎻", text: "Музыкальные инструменты" },
+                    card2: { emoji: "🎵", text: "Ель" },
+                    explanation: "Ель 🎵 → Инструменты 🎻: Из ели делают скрипки и гитары - эта древесина отлично резонирует звук!"
+                },
+                {
+                    id: 10,
+                    card1: { emoji: "✏️", text: "Карандаш" },
+                    card2: { emoji: "🌲", text: "Кедр" },
+                    explanation: "Кедр 🌲 → Карандаш ✏️: Кедровая древесина мягкая и легко затачивается, идеальна для изготовления карандашей!"
+                }
+            ]
+        };
+
+        // Глобальные переменные
+        let selectedLevel = 'medium';
+        let playerName = '';
+        let gameTimer = null;
+        let timeLeft = 90;
+        let score = 0;
+        let pairsFound = 0;
+        let totalPairs = 8;
+        let flippedCards = [];
+        let matchedPairs = [];
+        let canFlip = true;
+        let isPaused = false;
+        let gameStartTime = null;
+        let mistakes = 0;
+
+        // Аудио контекст для звуков
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'flip':
+                    oscillator.frequency.value = 300;
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                case 'match':
+                    oscillator.frequency.value = 523.25;
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'error':
+                    oscillator.frequency.value = 200;
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                case 'victory':
+                    [523.25, 587.33, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.2, audioContext.currentTime + i * 0.15);
+                        osc.start(audioContext.currentTime + i * 0.15);
+                        osc.stop(audioContext.currentTime + i * 0.15 + 0.3);
+                    });
+                    break;
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGameData();
+            setupEventListeners();
+            updateAdminStats();
+        });
+
+        function setupEventListeners() {
+            // Кнопки уровня сложности
+            document.querySelectorAll('.btn-difficulty').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.btn-difficulty').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedLevel = btn.dataset.level;
+                });
+            });
+
+            // Старт игры
+            document.getElementById('start-game').addEventListener('click', startGame);
+            
+            // Показать рекорды
+            document.getElementById('show-records').addEventListener('click', showRecords);
+            
+            // Показать правила
+            document.getElementById('show-rules').addEventListener('click', () => {
+                document.getElementById('rules-modal').classList.add('active');
+            });
+            
+            // Показать админку
+            document.getElementById('show-admin').addEventListener('click', showAdmin);
+            
+            // Игровые кнопки
+            document.getElementById('pause-btn').addEventListener('click', togglePause);
+            document.getElementById('exit-btn').addEventListener('click', () => {
+                if (confirm('Выйти из игры? Прогресс будет потерян.')) {
+                    returnToMenu();
+                }
+            });
+            
+            // Админ панель
+            document.getElementById('save-content').addEventListener('click', saveContent);
+            document.getElementById('export-stats').addEventListener('click', exportStats);
+            document.getElementById('back-to-menu').addEventListener('click', returnToMenu);
+        }
+
+        function startGame() {
+            playerName = document.getElementById('player-name').value.trim() || 'Игрок';
+            
+            // Настройка уровня
+            const levels = {
+                easy: { pairs: 6, time: 60, preview: 3000 },
+                medium: { pairs: 8, time: 90, preview: 2000 },
+                hard: { pairs: 10, time: 120, preview: 0 }
+            };
+            
+            const level = levels[selectedLevel];
+            totalPairs = level.pairs;
+            timeLeft = level.time;
+            score = 0;
+            pairsFound = 0;
+            mistakes = 0;
+            flippedCards = [];
+            matchedPairs = [];
+            canFlip = true;
+            isPaused = false;
+            gameStartTime = Date.now();
+            
+            // Обновление интерфейса
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('score').textContent = score;
+            document.getElementById('pairs-found').textContent = pairsFound;
+            document.getElementById('total-pairs').textContent = totalPairs;
+            
+            // Создание игрового поля
+            createGameBoard(level.pairs);
+            
+            // Переключение экрана
+            showScreen('game-screen');
+            
+            // Предпросмотр карт
+            if (level.preview > 0) {
+                showPreview(level.preview);
+            } else {
+                startTimer();
+            }
+        }
+
+        function createGameBoard(numPairs) {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            
+            // Определение сетки
+            const gridClass = numPairs === 6 ? 'grid-4x3' : numPairs === 8 ? 'grid-4x4' : 'grid-5x4';
+            board.className = `game-board ${gridClass}`;
+            
+            // Подготовка карточек
+            const selectedPairs = gameData.pairs.slice(0, numPairs);
+            const cards = [];
+            
+            selectedPairs.forEach(pair => {
+                cards.push({ ...pair.card1, pairId: pair.id, explanation: pair.explanation });
+                cards.push({ ...pair.card2, pairId: pair.id, explanation: pair.explanation });
+            });
+            
+            // Перемешивание
+            shuffleArray(cards);
+            
+            // Создание карточек
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.index = index;
+                cardElement.dataset.pairId = card.pairId;
+                cardElement.dataset.explanation = card.explanation;
+                
+                cardElement.innerHTML = `
+                    <div class="card-face card-back"></div>
+                    <div class="card-face card-front">
+                        <div class="card-emoji">${card.emoji}</div>
+                        <div class="card-text">${card.text}</div>
+                    </div>
+                `;
+                
+                cardElement.addEventListener('click', () => flipCard(cardElement));
+                board.appendChild(cardElement);
+            });
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function showPreview(duration) {
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.add('flipped');
+            });
+            
+            setTimeout(() => {
+                document.querySelectorAll('.card').forEach(card => {
+                    card.classList.remove('flipped');
+                });
+                startTimer();
+            }, duration);
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                if (!isPaused) {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = timeLeft;
+                    
+                    const timerElement = document.querySelector('.timer');
+                    if (timeLeft <= 10) {
+                        timerElement.classList.add('warning');
+                        if (timeLeft > 0) playSound('flip');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        endGame(false);
+                    }
+                }
+            }, 1000);
+        }
+
+        function flipCard(card) {
+            if (!canFlip || isPaused || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                return;
+            }
+            
+            playSound('flip');
+            card.classList.add('flipped');
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            const pair1 = card1.dataset.pairId;
+            const pair2 = card2.dataset.pairId;
+            
+            setTimeout(() => {
+                if (pair1 === pair2) {
+                    // Совпадение!
+                    playSound('match');
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    matchedPairs.push(pair1);
+                    pairsFound++;
+                    score += 10;
+                    
+                    document.getElementById('pairs-found').textContent = pairsFound;
+                    document.getElementById('score').textContent = score;
+                    
+                    // Показать объяснение
+                    showExplanation(card1.dataset.explanation);
+                    
+                    // Сохранение статистики ошибок
+                    savePairStats(pair1, true);
+                    
+                    if (pairsFound === totalPairs) {
+                        setTimeout(() => endGame(true), 1000);
+                    }
+                } else {
+                    // Не совпадение
+                    playSound('error');
+                    card1.classList.add('wrong');
+                    card2.classList.add('wrong');
+                    mistakes++;
+                    score = Math.max(0, score - 2);
+                    document.getElementById('score').textContent = score;
+                    
+                    // Сохранение статистики ошибок
+                    savePairStats(pair1, false);
+                    
+                    setTimeout(() => {
+                        card1.classList.remove('flipped', 'wrong');
+                        card2.classList.remove('flipped', 'wrong');
+                    }, 1000);
+                }
+                
+                flippedCards = [];
+                canFlip = true;
+            }, 800);
+        }
+
+        function showExplanation(text) {
+            document.getElementById('explanation-text').textContent = text;
+            document.getElementById('explanation-modal').classList.add('active');
+        }
+
+        function closeExplanation() {
+            document.getElementById('explanation-modal').classList.remove('active');
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pause-btn');
+            btn.textContent = isPaused ? '▶️ Продолжить' : '⏸️ Пауза';
+        }
+
+        function endGame(victory) {
+            clearInterval(gameTimer);
+            
+            if (victory) {
+                playSound('victory');
+                
+                // Бонус за время
+                const timeBonus = timeLeft;
+                score += timeBonus;
+                
+                // Определение звезд
+                let stars = '⭐';
+                if (score >= 80) stars = '⭐⭐⭐';
+                else if (score >= 50) stars = '⭐⭐';
+                
+                document.getElementById('stars-display').textContent = stars;
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('time-spent').textContent = (Date.now() - gameStartTime) / 1000;
+                document.getElementById('pairs-result').textContent = pairsFound + '/' + totalPairs;
+                
+                // Сохранение рекорда
+                saveRecord(playerName, score, selectedLevel);
+                
+                // Конфетти
+                createConfetti();
+                
+                document.getElementById('victory-modal').classList.add('active');
+            } else {
+                alert('⏰ Время вышло! Попробуй ещё раз.');
+                returnToMenu();
+            }
+        }
+
+        function createConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#FF9800', '#FFC107', '#4CAF50', '#2196F3', '#9C27B0', '#F44336'];
+            
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: -10,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 3 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4
+                });
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1;
+                    
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    
+                    if (p.y > canvas.height) {
+                        particles.splice(index, 1);
+                    }
+                });
+                
+                if (particles.length > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            
+            animate();
+        }
+
+        function saveRecord(name, points, level) {
+            const records = JSON.parse(localStorage.getItem('woodRecords') || '[]');
+            records.push({
+                name: name,
+                score: points,
+                level: level,
+                date: new Date().toLocaleDateString('ru-RU')
+            });
+            
+            records.sort((a, b) => b.score - a.score);
+            localStorage.setItem('woodRecords', JSON.stringify(records.slice(0, 10)));
+            
+            // Обновление общей статистики
+            updateGameStats(points, mistakes);
+        }
+
+        function updateGameStats(finalScore, errorCount) {
+            const stats = JSON.parse(localStorage.getItem('woodStats') || '{"totalGames": 0, "totalScore": 0, "totalMistakes": 0}');
+            stats.totalGames++;
+            stats.totalScore += finalScore;
+            stats.totalMistakes += errorCount;
+            localStorage.setItem('woodStats', JSON.stringify(stats));
+        }
+
+        function savePairStats(pairId, isCorrect) {
+            const pairStats = JSON.parse(localStorage.getItem('woodPairStats') || '{}');
+            if (!pairStats[pairId]) {
+                pairStats[pairId] = { attempts: 0, errors: 0 };
+            }
+            pairStats[pairId].attempts++;
+            if (!isCorrect) pairStats[pairId].errors++;
+            localStorage.setItem('woodPairStats', JSON.stringify(pairStats));
+        }
+
+        function showRecords() {
+            const records = JSON.parse(localStorage.getItem('woodRecords') || '[]');
+            const list = document.getElementById('records-list');
+            
+            if (records.length === 0) {
+                list.innerHTML = '<p style="text-align: center;">Рекордов пока нет. Сыграй первым!</p>';
+            } else {
+                list.innerHTML = records.slice(0, 5).map((record, index) => `
+                    <div class="record-item">
+                        <span>${index + 1}. ${record.name}</span>
+                        <span>${record.score} очков (${record.level}) - ${record.date}</span>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('records-modal').classList.add('active');
+        }
+
+        function closeRecords() {
+            document.getElementById('records-modal').classList.remove('active');
+        }
+
+        function clearRecords() {
+            if (confirm('Удалить все рекорды?')) {
+                localStorage.removeItem('woodRecords');
+                closeRecords();
+            }
+        }
+
+        function closeRules() {
+            document.getElementById('rules-modal').classList.remove('active');
+        }
+
+        function returnToMenu() {
+            clearInterval(gameTimer);
+            showScreen('menu-screen');
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function playAgain() {
+            document.getElementById('victory-modal').classList.remove('active');
+            startGame();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showAdmin() {
+            updateAdminStats();
+            document.getElementById('content-editor').value = JSON.stringify(gameData, null, 2);
+            showScreen('admin-screen');
+        }
+
+        function updateAdminStats() {
+            const stats = JSON.parse(localStorage.getItem('woodStats') || '{"totalGames": 0, "totalScore": 0}');
+            const records = JSON.parse(localStorage.getItem('woodRecords') || '[]');
+            
+            document.getElementById('total-games').textContent = stats.totalGames;
+            document.getElementById('avg-score').textContent = stats.totalGames > 0 
+                ? Math.round(stats.totalScore / stats.totalGames) 
+                : 0;
+            document.getElementById('best-score').textContent = records.length > 0 
+                ? records[0].score 
+                : 0;
+            
+            // Сложные пары
+            const pairStats = JSON.parse(localStorage.getItem('woodPairStats') || '{}');
+            const difficult = Object.entries(pairStats)
+                .map(([id, data]) => ({
+                    id: id,
+                    errorRate: data.errors / data.attempts,
+                    errors: data.errors,
+                    attempts: data.attempts
+                }))
+                .sort((a, b) => b.errorRate - a.errorRate)
+                .slice(0, 3);
+            
+            const difficultDiv = document.getElementById('difficult-pairs');
+            if (difficult.length > 0) {
+                difficultDiv.innerHTML = difficult.map(p => {
+                    const pair = gameData.pairs.find(pair => pair.id == p.id);
+                    return `<p>📊 ${pair.card1.text} ↔ ${pair.card2.text}: ${p.errors} ошибок из ${p.attempts} попыток (${Math.round(p.errorRate * 100)}%)</p>`;
+                }).join('');
+            }
+        }
+
+        function saveContent() {
+            try {
+                const newData = JSON.parse(document.getElementById('content-editor').value);
+                gameData.pairs = newData.pairs;
+                localStorage.setItem('woodGameData', JSON.stringify(gameData));
+                alert('✅ Контент успешно сохранён!');
+            } catch (e) {
+                alert('❌ Ошибка в формате JSON! Проверь синтаксис.');
+            }
+        }
+
+        function loadGameData() {
+            const saved = localStorage.getItem('woodGameData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameData.pairs = data.pairs;
+            }
+        }
+
+        function exportStats() {
+            const stats = JSON.parse(localStorage.getItem('woodStats') || '{}');
+            const records = JSON.parse(localStorage.getItem('woodRecords') || '[]');
+            const pairStats = JSON.parse(localStorage.getItem('woodPairStats') || '{}');
+            
+            let csv = 'Тип,Данные\n';
+            csv += `Всего игр,${stats.totalGames}\n`;
+            csv += `Средний балл,${stats.totalGames > 0 ? Math.round(stats.totalScore / stats.totalGames) : 0}\n`;
+            csv += `\nТоп-5 рекордов\n`;
+            csv += 'Имя,Очки,Уровень,Дата\n';
+            records.slice(0, 5).forEach(r => {
+                csv += `${r.name},${r.score},${r.level},${r.date}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'статистика_игры.csv';
+            link.click();
+        }
+    </script>
+</body>
+</html>
+
